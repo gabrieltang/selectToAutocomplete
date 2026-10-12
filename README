@@ -29,4 +29,5 @@ to?" prompt that resolves the chosen country to a webstore and redirects
 there (simulated, with a store map you can edit at the top of the script).
 
 - Shopify
-See shopify/README.md for a ready-to-paste theme section and install steps.
+See shopify/README.md for ready-to-paste theme sections (contact form and
+ship-to store redirect) and install steps.
