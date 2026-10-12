@@ -1,9 +1,15 @@
 # Using the location selector in a Shopify theme
 
-This folder contains a ready-to-paste section for Shopify Online Store 2.0
-themes (Dawn and most current themes). It shows a "Where are you located?"
-form with the type-ahead country selector, inside a Shopify contact form, so
-submissions arrive at the store's contact email with the chosen country.
+This folder contains two ready-to-paste sections for Shopify Online Store 2.0
+themes (Dawn and most current themes):
+
+- `sections/location-selector.liquid`: a "Where are you located?" form with
+  the type-ahead country selector inside a Shopify contact form, so
+  submissions arrive at the store's contact email with the chosen country.
+- `sections/shipto-redirect.liquid`: a "Where should we ship to?" prompt that
+  resolves the chosen country to one of your webstores and sends the visitor
+  there. Stores are blocks in the theme editor, so nobody edits JavaScript to
+  change them. See [Ship-to redirect](#ship-to-redirect) below.
 
 The repository zip cannot be uploaded as a theme on its own: Shopify expects a
 theme folder structure and does not serve standalone HTML pages. Use the steps
@@ -20,17 +26,57 @@ below instead.
    - `jquery.select-to-autocomplete.js`
    - `jquery-ui.css`
 3. Under **Sections**, click **Add a new section**, name it
-   `location-selector`, and replace the generated contents with
-   `shopify/sections/location-selector.liquid` from this folder. Save.
+   `location-selector` (or `shipto-redirect`), and replace the generated
+   contents with the matching file from `shopify/sections/`. Save.
 4. Go to **Online Store → Themes → Customize**, open the page you want (for
    example a new page using the default page template), click **Add section**
-   and pick **Location selector**.
+   and pick **Location selector** or **Ship-to redirect**.
 5. Adjust the heading, labels, placeholder and padding in the section settings
    and save.
 
 Submissions use Shopify's contact form, so they are sent to the sender email
 set under **Settings → Notifications**, with the country shown under the
 label chosen in the "Field name in the contact email" setting.
+
+## Ship-to redirect
+
+The **Ship-to redirect** section sends visitors to the store that serves their
+country. After adding it:
+
+1. Add one **Store** block per webstore. Give it a name, its URL (for example
+   `https://eu.example.com/`) and the countries it serves as ISO 3166-1
+   two-letter codes separated by spaces or commas (`DE, FR, NL`). The preset
+   comes with US, Canada, UK, EU and Australia/NZ blocks whose URLs you fill
+   in.
+2. Set the **Fallback store URL** for every country not listed on a block, or
+   leave it empty to show the "we do not ship there yet" message instead.
+3. Keep the **Country query parameter** as `country` so the destination store
+   receives `?country=DE` and can preselect the shipping country or market.
+   Set it to empty to send no parameter.
+
+Behaviour settings:
+
+- **Suggest a country from the browser language** preselects a likely country
+  (the `GB` in `en-GB`). The visitor can change it before going anywhere.
+- **Offer to remember the choice on this device** shows a checkbox and stores
+  the chosen country in `localStorage` under the **Storage key**.
+- **Redirect returning visitors automatically** sends a visitor with a
+  remembered choice straight on when the section loads. It never fires on
+  the store it would redirect to, nor inside the theme editor.
+- All visible messages are settings and accept `{country}`, `{code}` and
+  `{store}` placeholders.
+
+Install the section on every store, with the same store blocks and storage
+key, so a visitor who lands on the wrong store can switch and their new
+choice is remembered. When the chosen country maps to the store the visitor
+is already on, the section says so and does not redirect, which also prevents
+redirect loops. In the theme editor, submitting shows the destination URL
+instead of navigating.
+
+The query parameter is only a hint: the destination store needs its own code
+to read `country` and preselect the shipping country, currency or market. If
+all your stores are Shopify Markets inside one shop, use Shopify's
+localization form instead of redirecting across domains.
 
 ## jQuery
 
@@ -54,7 +100,7 @@ before the theme's copy exists.
   `selectToAutocomplete()` on it for type-ahead, but synonyms such as "UK" or
   "Deutschland" only work if you add `data-alternative-spellings` to its
   options with a small script first.
-- Add the section once per page. Each copy loads the scripts again.
+- Add one of these sections once per page. Each copy loads the scripts again.
 
 ## Using the selector in your own form
 
