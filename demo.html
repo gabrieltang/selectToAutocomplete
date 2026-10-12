@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Select to Autocomplete – Demo</title>
+  <script src="jquery-1.11.1.min.js"></script>
+  <script src="jquery-ui.min.js"></script>
+  <script src="jquery.select-to-autocomplete.js"></script>
+  <link rel="stylesheet" href="jquery-ui.css">
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --panel: #ffffff;
+      --text: #1f2933;
+      --muted: #5f6b7a;
+      --border: #d9e0e7;
+      --accent: #1f6feb;
+      --accent-soft: #e6f0ff;
+      --ok: #1a7f37;
+      --ok-soft: #e6f6ea;
+      --code-bg: #f0f3f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
+    header { margin-bottom: 28px; }
+    h1 { font-size: 30px; margin: 0 0 6px; }
+    h2 { font-size: 20px; margin: 0 0 12px; }
+    h3 { font-size: 15px; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    p { margin: 0 0 12px; }
+    a { color: var(--accent); }
+    .lead { font-size: 17px; color: var(--muted); }
+    section.card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 22px;
+    }
+    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 720px) { .demo-grid { grid-template-columns: 1fr; } }
+    label.field { display: block; font-weight: 600; margin-bottom: 6px; }
+    .demo-input {
+      width: 100%;
+      font: inherit;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+    }
+    .demo-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .actions { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    button, .chip {
+      font: inherit;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button:hover, .chip:hover { border-color: var(--accent); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+    .chip { font-size: 13px; padding: 5px 10px; background: var(--accent-soft); border-color: transparent; }
+    .chip code { background: transparent; padding: 0; }
+    .state { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; font-size: 14px; }
+    .state dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; }
+    .state dt { color: var(--muted); }
+    .state dd { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; word-break: break-all; }
+    .state dd:empty::before { content: "—"; color: var(--muted); }
+    .log { list-style: none; margin: 10px 0 0; padding: 10px 0 0; border-top: 1px dashed var(--border); max-height: 150px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+    .log li { padding: 2px 0; color: var(--muted); }
+    .log li:first-child { color: var(--text); }
+    .submitted { display: none; margin-top: 12px; padding: 10px 12px; border-radius: 6px; background: var(--ok-soft); color: var(--ok); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+    pre { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; overflow: auto; font-size: 13px; line-height: 1.5; margin: 0 0 14px; }
+    pre code { background: transparent; padding: 0; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    ol.steps { padding-left: 22px; }
+    ol.steps li { margin-bottom: 8px; }
+    .formula { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); padding: 10px 14px; border-radius: 6px; display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
+    footer { color: var(--muted); font-size: 13px; margin-top: 30px; }
+
+    /* Autocomplete dropdown styling (overrides the bare jquery-ui.css) */
+    .ui-autocomplete {
+      padding: 0;
+      list-style: none;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(31, 41, 51, .12);
+      max-height: 320px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 1000;
+    }
+    .ui-autocomplete .ui-menu-item {
+      display: block;
+      padding: 8px 12px;
+      border-top: 1px solid #eef1f4;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .ui-autocomplete .ui-menu-item:first-child { border-top: none; }
+    .ui-autocomplete .ui-menu-item.ui-state-focus { background: var(--accent-soft); color: #0b3d91; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Select to Autocomplete</h1>
+    <p class="lead">A redesigned location selector: a plain <code>&lt;select&gt;</code> becomes a text field that you can type into, with synonyms, alternative spellings, loose matching and prioritised results.</p>
+    <p>Based on <a href="http://uxdesign.smashingmagazine.com/2011/11/10/redesigning-the-country-selector/">Redesigning The Country Selector</a> (Smashing Magazine) by the <a href="http://baymard.com/labs/country-selector">Baymard Institute</a>.</p>
+  </header>
+
+  <section class="card" id="live-demo">
+    <h2>1. Live demo: country selector</h2>
+    <p>Click into the field and start typing. The dropdown narrows as you type, and the best match is highlighted so you can press <kbd>Enter</kbd> or <kbd>Tab</kbd> to pick it. The original <code>&lt;select name="Country"&gt;</code> is still in the form, hidden, and is what gets submitted.</p>
+    <div class="demo-grid">
+      <div>
+        <form id="country-form">
+          <label class="field" for="country-selector">Country</label>
+          <select name="Country" id="country-selector" class="demo-input" placeholder="Start typing a country…" autocorrect="off" autocomplete="off">
+      <option value="" selected="selected">Select Country</option>
+      <option value="Afghanistan" data-alternative-spellings="AF افغانستان">Afghanistan</option>
+      <option value="Åland Islands" data-alternative-spellings="AX Aaland Aland" data-relevancy-booster="0.5">Åland Islands</option>
+      <option value="Albania" data-alternative-spellings="AL">Albania</option>
+      <option value="Algeria" data-alternative-spellings="DZ الجزائر">Algeria</option>
+      <option value="American Samoa" data-alternative-spellings="AS" data-relevancy-booster="0.5">American Samoa</option>
+      <option value="Andorra" data-alternative-spellings="AD" data-relevancy-booster="0.5">Andorra</option>
+      <option value="Angola" data-alternative-spellings="AO">Angola</option>
+      <option value="Anguilla" data-alternative-spellings="AI" data-relevancy-booster="0.5">Anguilla</option>
+      <option value="Antarctica" data-alternative-spellings="AQ" data-relevancy-booster="0.5">Antarctica</option>
+      <option value="Antigua And Barbuda" data-alternative-spellings="AG" data-relevancy-booster="0.5">Antigua And Barbuda</option>
+      <option value="Argentina" data-alternative-spellings="AR">Argentina</option>
+      <option value="Armenia" data-alternative-spellings="AM Հայաստան">Armenia</option>
+      <option value="Aruba" data-alternative-spellings="AW" data-relevancy-booster="0.5">Aruba</option>
+      <option value="Australia" data-alternative-spellings="AU" data-relevancy-booster="1.5">Australia</option>
+      <option value="Austria" data-alternative-spellings="AT Österreich Osterreich Oesterreich ">Austria</option>
+      <option value="Azerbaijan" data-alternative-spellings="AZ">Azerbaijan</option>
+      <option value="Bahamas" data-alternative-spellings="BS">Bahamas</option>
+      <option value="Bahrain" data-alternative-spellings="BH البحرين">Bahrain</option>
+      <option value="Bangladesh" data-alternative-spellings="BD বাংলাদেশ" data-relevancy-booster="2">Bangladesh</option>
+      <option value="Barbados" data-alternative-spellings="BB">Barbados</option>
+      <option value="Belarus" data-alternative-spellings="BY Беларусь">Belarus</option>
+      <option value="Belgium" data-alternative-spellings="BE België Belgie Belgien Belgique" data-relevancy-booster="1.5">Belgium</option>
+      <option value="Belize" data-alternative-spellings="BZ">Belize</option>
+      <option value="Benin" data-alternative-spellings="BJ">Benin</option>
+      <option value="Bermuda" data-alternative-spellings="BM" data-relevancy-booster="0.5">Bermuda</option>
+      <option value="Bhutan" data-alternative-spellings="BT भूटान">Bhutan</option>
+      <option value="Bolivia" data-alternative-spellings="BO">Bolivia</option>
+      <option value="Bonaire, Sint Eustatius and Saba" data-alternative-spellings="BQ">Bonaire, Sint Eustatius and Saba</option>
+      <option value="Bosnia and Herzegovina" data-alternative-spellings="BA BiH Bosna i Hercegovina Босна и Херцеговина">Bosnia and Herzegovina</option>
+      <option value="Botswana" data-alternative-spellings="BW">Botswana</option>
+      <option value="Bouvet Island" data-alternative-spellings="BV">Bouvet Island</option>
+      <option value="Brazil" data-alternative-spellings="BR Brasil" data-relevancy-booster="2">Brazil</option>
+      <option value="British Indian Ocean Territory" data-alternative-spellings="IO">British Indian Ocean Territory</option>
+      <option value="Brunei Darussalam" data-alternative-spellings="BN">Brunei Darussalam</option>
+      <option value="Bulgaria" data-alternative-spellings="BG България">Bulgaria</option>
+      <option value="Burkina Faso" data-alternative-spellings="BF">Burkina Faso</option>
+      <option value="Burundi" data-alternative-spellings="BI">Burundi</option>
+      <option value="Cambodia" data-alternative-spellings="KH កម្ពុជា">Cambodia</option>
+      <option value="Cameroon" data-alternative-spellings="CM">Cameroon</option>
+      <option value="Canada" data-alternative-spellings="CA" data-relevancy-booster="2">Canada</option>
+      <option value="Cape Verde" data-alternative-spellings="CV Cabo">Cape Verde</option>
+      <option value="Cayman Islands" data-alternative-spellings="KY" data-relevancy-booster="0.5">Cayman Islands</option>
+      <option value="Central African Republic" data-alternative-spellings="CF">Central African Republic</option>
+      <option value="Chad" data-alternative-spellings="TD تشاد‎ Tchad">Chad</option>
+      <option value="Chile" data-alternative-spellings="CL">Chile</option>
+      <option value="China" data-relevancy-booster="3.5" data-alternative-spellings="CN Zhongguo Zhonghua Peoples Republic 中国/中华">China</option>
+      <option value="Christmas Island" data-alternative-spellings="CX" data-relevancy-booster="0.5">Christmas Island</option>
+      <option value="Cocos (Keeling) Islands" data-alternative-spellings="CC" data-relevancy-booster="0.5">Cocos (Keeling) Islands</option>
+      <option value="Colombia" data-alternative-spellings="CO">Colombia</option>
+      <option value="Comoros" data-alternative-spellings="KM جزر القمر">Comoros</option>
+      <option value="Congo" data-alternative-spellings="CG">Congo</option>
+      <option value="Congo, the Democratic Republic of the" data-alternative-spellings="CD Congo-Brazzaville Repubilika ya Kongo">Congo, the Democratic Republic of the</option>
+      <option value="Cook Islands" data-alternative-spellings="CK" data-relevancy-booster="0.5">Cook Islands</option>
+      <option value="Costa Rica" data-alternative-spellings="CR">Costa Rica</option>
+      <option value="Côte d'Ivoire" data-alternative-spellings="CI Cote dIvoire">Côte d'Ivoire</option>
+      <option value="Croatia" data-alternative-spellings="HR Hrvatska">Croatia</option>
+      <option value="Cuba" data-alternative-spellings="CU">Cuba</option>
+      <option value="Curaçao" data-alternative-spellings="CW Curacao">Curaçao</option>
+      <option value="Cyprus" data-alternative-spellings="CY Κύπρος Kýpros Kıbrıs">Cyprus</option>
+      <option value="Czech Republic" data-alternative-spellings="CZ Česká Ceska">Czech Republic</option>
+      <option value="Denmark" data-alternative-spellings="DK Danmark" data-relevancy-booster="1.5">Denmark</option>
+      <option value="Djibouti" data-alternative-spellings="DJ جيبوتي‎ Jabuuti Gabuuti">Djibouti</option>
+      <option value="Dominica" data-alternative-spellings="DM Dominique" data-relevancy-booster="0.5">Dominica</option>
+      <option value="Dominican Republic" data-alternative-spellings="DO">Dominican Republic</option>
+      <option value="Ecuador" data-alternative-spellings="EC">Ecuador</option>
+      <option value="Egypt" data-alternative-spellings="EG" data-relevancy-booster="1.5">Egypt</option>
+      <option value="El Salvador" data-alternative-spellings="SV">El Salvador</option>
+      <option value="Equatorial Guinea" data-alternative-spellings="GQ">Equatorial Guinea</option>
+      <option value="Eritrea" data-alternative-spellings="ER إرتريا ኤርትራ">Eritrea</option>
+      <option value="Estonia" data-alternative-spellings="EE Eesti">Estonia</option>
+      <option value="Ethiopia" data-alternative-spellings="ET ኢትዮጵያ">Ethiopia</option>
+      <option value="Falkland Islands (Malvinas)" data-alternative-spellings="FK" data-relevancy-booster="0.5">Falkland Islands (Malvinas)</option>
+      <option value="Faroe Islands" data-alternative-spellings="FO Føroyar Færøerne" data-relevancy-booster="0.5">Faroe Islands</option>
+      <option value="Fiji" data-alternative-spellings="FJ Viti फ़िजी">Fiji</option>
+      <option value="Finland" data-alternative-spellings="FI Suomi">Finland</option>
+      <option value="France" data-alternative-spellings="FR République française" data-relevancy-booster="2.5">France</option>
+      <option value="French Guiana" data-alternative-spellings="GF">French Guiana</option>
+      <option value="French Polynesia" data-alternative-spellings="PF Polynésie française">French Polynesia</option>
+      <option value="French Southern Territories" data-alternative-spellings="TF">French Southern Territories</option>
+      <option value="Gabon" data-alternative-spellings="GA République Gabonaise">Gabon</option>
+      <option value="Gambia" data-alternative-spellings="GM">Gambia</option>
+      <option value="Georgia" data-alternative-spellings="GE საქართველო">Georgia</option>
+      <option value="Germany" data-alternative-spellings="DE Bundesrepublik Deutschland" data-relevancy-booster="3">Germany</option>
+      <option value="Ghana" data-alternative-spellings="GH">Ghana</option>
+      <option value="Gibraltar" data-alternative-spellings="GI" data-relevancy-booster="0.5">Gibraltar</option>
+      <option value="Greece" data-alternative-spellings="GR Ελλάδα" data-relevancy-booster="1.5">Greece</option>
+      <option value="Greenland" data-alternative-spellings="GL grønland" data-relevancy-booster="0.5">Greenland</option>
+      <option value="Grenada" data-alternative-spellings="GD">Grenada</option>
+      <option value="Guadeloupe" data-alternative-spellings="GP">Guadeloupe</option>
+      <option value="Guam" data-alternative-spellings="GU">Guam</option>
+      <option value="Guatemala" data-alternative-spellings="GT">Guatemala</option>
+      <option value="Guernsey" data-alternative-spellings="GG" data-relevancy-booster="0.5">Guernsey</option>
+      <option value="Guinea" data-alternative-spellings="GN">Guinea</option>
+      <option value="Guinea-Bissau" data-alternative-spellings="GW">Guinea-Bissau</option>
+      <option value="Guyana" data-alternative-spellings="GY">Guyana</option>
+      <option value="Haiti" data-alternative-spellings="HT">Haiti</option>
+      <option value="Heard Island and McDonald Islands" data-alternative-spellings="HM">Heard Island and McDonald Islands</option>
+      <option value="Holy See (Vatican City State)" data-alternative-spellings="VA" data-relevancy-booster="0.5">Holy See (Vatican City State)</option>
+      <option value="Honduras" data-alternative-spellings="HN">Honduras</option>
+      <option value="Hong Kong" data-alternative-spellings="HK 香港">Hong Kong</option>
+      <option value="Hungary" data-alternative-spellings="HU Magyarország">Hungary</option>
+      <option value="Iceland" data-alternative-spellings="IS Island">Iceland</option>
+      <option value="India" data-alternative-spellings="IN भारत गणराज्य Hindustan" data-relevancy-booster="3">India</option>
+      <option value="Indonesia" data-alternative-spellings="ID" data-relevancy-booster="2">Indonesia</option>
+      <option value="Iran, Islamic Republic of" data-alternative-spellings="IR ایران">Iran, Islamic Republic of</option>
+      <option value="Iraq" data-alternative-spellings="IQ العراق‎">Iraq</option>
+      <option value="Ireland" data-alternative-spellings="IE Éire" data-relevancy-booster="1.2">Ireland</option>
+      <option value="Isle of Man" data-alternative-spellings="IM" data-relevancy-booster="0.5">Isle of Man</option>
+      <option value="Israel" data-alternative-spellings="IL إسرائيل ישראל">Israel</option>
+      <option value="Italy" data-alternative-spellings="IT Italia" data-relevancy-booster="2">Italy</option>
+      <option value="Jamaica" data-alternative-spellings="JM">Jamaica</option>
+      <option value="Japan" data-alternative-spellings="JP Nippon Nihon 日本" data-relevancy-booster="2.5">Japan</option>
+      <option value="Jersey" data-alternative-spellings="JE" data-relevancy-booster="0.5">Jersey</option>
+      <option value="Jordan" data-alternative-spellings="JO الأردن">Jordan</option>
+      <option value="Kazakhstan" data-alternative-spellings="KZ Қазақстан Казахстан">Kazakhstan</option>
+      <option value="Kenya" data-alternative-spellings="KE">Kenya</option>
+      <option value="Kiribati" data-alternative-spellings="KI">Kiribati</option>
+      <option value="Korea, Democratic People's Republic of" data-alternative-spellings="KP North Korea">Korea, Democratic People's Republic of</option>
+      <option value="Korea, Republic of" data-alternative-spellings="KR South Korea" data-relevancy-booster="1.5">Korea, Republic of</option>
+      <option value="Kuwait" data-alternative-spellings="KW الكويت">Kuwait</option>
+      <option value="Kyrgyzstan" data-alternative-spellings="KG Кыргызстан">Kyrgyzstan</option>
+      <option value="Lao People's Democratic Republic" data-alternative-spellings="LA">Lao People's Democratic Republic</option>
+      <option value="Latvia" data-alternative-spellings="LV Latvija">Latvia</option>
+      <option value="Lebanon" data-alternative-spellings="LB لبنان">Lebanon</option>
+      <option value="Lesotho" data-alternative-spellings="LS">Lesotho</option>
+      <option value="Liberia" data-alternative-spellings="LR">Liberia</option>
+      <option value="Libyan Arab Jamahiriya" data-alternative-spellings="LY ليبيا">Libyan Arab Jamahiriya</option>
+      <option value="Liechtenstein" data-alternative-spellings="LI">Liechtenstein</option>
+      <option value="Lithuania" data-alternative-spellings="LT Lietuva">Lithuania</option>
+      <option value="Luxembourg" data-alternative-spellings="LU">Luxembourg</option>
+      <option value="Macao" data-alternative-spellings="MO">Macao</option>
+      <option value="Macedonia, The Former Yugoslav Republic Of" data-alternative-spellings="MK Македонија">Macedonia, The Former Yugoslav Republic Of</option>
+      <option value="Madagascar" data-alternative-spellings="MG Madagasikara">Madagascar</option>
+      <option value="Malawi" data-alternative-spellings="MW">Malawi</option>
+      <option value="Malaysia" data-alternative-spellings="MY">Malaysia</option>
+      <option value="Maldives" data-alternative-spellings="MV">Maldives</option>
+      <option value="Mali" data-alternative-spellings="ML">Mali</option>
+      <option value="Malta" data-alternative-spellings="MT">Malta</option>
+      <option value="Marshall Islands" data-alternative-spellings="MH" data-relevancy-booster="0.5">Marshall Islands</option>
+      <option value="Martinique" data-alternative-spellings="MQ">Martinique</option>
+      <option value="Mauritania" data-alternative-spellings="MR الموريتانية">Mauritania</option>
+      <option value="Mauritius" data-alternative-spellings="MU">Mauritius</option>
+      <option value="Mayotte" data-alternative-spellings="YT">Mayotte</option>
+      <option value="Mexico" data-alternative-spellings="MX Mexicanos" data-relevancy-booster="1.5">Mexico</option>
+      <option value="Micronesia, Federated States of" data-alternative-spellings="FM">Micronesia, Federated States of</option>
+      <option value="Moldova, Republic of" data-alternative-spellings="MD">Moldova, Republic of</option>
+      <option value="Monaco" data-alternative-spellings="MC">Monaco</option>
+      <option value="Mongolia" data-alternative-spellings="MN Mongγol ulus Монгол улс">Mongolia</option>
+      <option value="Montenegro" data-alternative-spellings="ME">Montenegro</option>
+      <option value="Montserrat" data-alternative-spellings="MS" data-relevancy-booster="0.5">Montserrat</option>
+      <option value="Morocco" data-alternative-spellings="MA المغرب">Morocco</option>
+      <option value="Mozambique" data-alternative-spellings="MZ Moçambique">Mozambique</option>
+      <option value="Myanmar" data-alternative-spellings="MM">Myanmar</option>
+      <option value="Namibia" data-alternative-spellings="NA Namibië">Namibia</option>
+      <option value="Nauru" data-alternative-spellings="NR Naoero" data-relevancy-booster="0.5">Nauru</option>
+      <option value="Nepal" data-alternative-spellings="NP नेपाल">Nepal</option>
+      <option value="Netherlands" data-alternative-spellings="NL Holland Nederland" data-relevancy-booster="1.5">Netherlands</option>
+      <option value="New Caledonia" data-alternative-spellings="NC" data-relevancy-booster="0.5">New Caledonia</option>
+      <option value="New Zealand" data-alternative-spellings="NZ Aotearoa">New Zealand</option>
+      <option value="Nicaragua" data-alternative-spellings="NI">Nicaragua</option>
+      <option value="Niger" data-alternative-spellings="NE Nijar">Niger</option>
+      <option value="Nigeria" data-alternative-spellings="NG Nijeriya Naíjíríà" data-relevancy-booster="1.5">Nigeria</option>
+      <option value="Niue" data-alternative-spellings="NU" data-relevancy-booster="0.5">Niue</option>
+      <option value="Norfolk Island" data-alternative-spellings="NF" data-relevancy-booster="0.5">Norfolk Island</option>
+      <option value="Northern Mariana Islands" data-alternative-spellings="MP" data-relevancy-booster="0.5">Northern Mariana Islands</option>
+      <option value="Norway" data-alternative-spellings="NO Norge Noreg" data-relevancy-booster="1.5">Norway</option>
+      <option value="Oman" data-alternative-spellings="OM عمان">Oman</option>
+      <option value="Pakistan" data-alternative-spellings="PK پاکستان" data-relevancy-booster="2">Pakistan</option>
+      <option value="Palau" data-alternative-spellings="PW" data-relevancy-booster="0.5">Palau</option>
+      <option value="Palestinian Territory, Occupied" data-alternative-spellings="PS فلسطين">Palestinian Territory, Occupied</option>
+      <option value="Panama" data-alternative-spellings="PA">Panama</option>
+      <option value="Papua New Guinea" data-alternative-spellings="PG">Papua New Guinea</option>
+      <option value="Paraguay" data-alternative-spellings="PY">Paraguay</option>
+      <option value="Peru" data-alternative-spellings="PE">Peru</option>
+      <option value="Philippines" data-alternative-spellings="PH Pilipinas" data-relevancy-booster="1.5">Philippines</option>
+      <option value="Pitcairn" data-alternative-spellings="PN" data-relevancy-booster="0.5">Pitcairn</option>
+      <option value="Poland" data-alternative-spellings="PL Polska" data-relevancy-booster="1.25">Poland</option>
+      <option value="Portugal" data-alternative-spellings="PT Portuguesa" data-relevancy-booster="1.5">Portugal</option>
+      <option value="Puerto Rico" data-alternative-spellings="PR">Puerto Rico</option>
+      <option value="Qatar" data-alternative-spellings="QA قطر">Qatar</option>
+      <option value="Réunion" data-alternative-spellings="RE Reunion">Réunion</option>
+      <option value="Romania" data-alternative-spellings="RO Rumania Roumania România">Romania</option>
+      <option value="Russian Federation" data-alternative-spellings="RU Rossiya Российская Россия" data-relevancy-booster="2.5">Russian Federation</option>
+      <option value="Rwanda" data-alternative-spellings="RW">Rwanda</option>
+      <option value="Saint Barthélemy" data-alternative-spellings="BL St. Barthelemy">Saint Barthélemy</option>
+      <option value="Saint Helena" data-alternative-spellings="SH St.">Saint Helena</option>
+      <option value="Saint Kitts and Nevis" data-alternative-spellings="KN St.">Saint Kitts and Nevis</option>
+      <option value="Saint Lucia" data-alternative-spellings="LC St.">Saint Lucia</option>
+      <option value="Saint Martin (French Part)" data-alternative-spellings="MF St.">Saint Martin (French Part)</option>
+      <option value="Saint Pierre and Miquelon" data-alternative-spellings="PM St.">Saint Pierre and Miquelon</option>
+      <option value="Saint Vincent and the Grenadines" data-alternative-spellings="VC St.">Saint Vincent and the Grenadines</option>
+      <option value="Samoa" data-alternative-spellings="WS">Samoa</option>
+      <option value="San Marino" data-alternative-spellings="SM RSM Repubblica">San Marino</option>
+      <option value="Sao Tome and Principe" data-alternative-spellings="ST">Sao Tome and Principe</option>
+      <option value="Saudi Arabia" data-alternative-spellings="SA السعودية">Saudi Arabia</option>
+      <option value="Senegal" data-alternative-spellings="SN Sénégal">Senegal</option>
+      <option value="Serbia" data-alternative-spellings="RS Србија Srbija">Serbia</option>
+      <option value="Seychelles" data-alternative-spellings="SC" data-relevancy-booster="0.5">Seychelles</option>
+      <option value="Sierra Leone" data-alternative-spellings="SL">Sierra Leone</option>
+      <option value="Singapore" data-alternative-spellings="SG Singapura  சிங்கப்பூர் குடியரசு 新加坡共和国">Singapore</option>
+      <option value="Sint Maarten (Dutch Part)" data-alternative-spellings="SX">Sint Maarten (Dutch Part)</option>
+      <option value="Slovakia" data-alternative-spellings="SK Slovenská Slovensko">Slovakia</option>
+      <option value="Slovenia" data-alternative-spellings="SI Slovenija">Slovenia</option>
+      <option value="Solomon Islands" data-alternative-spellings="SB">Solomon Islands</option>
+      <option value="Somalia" data-alternative-spellings="SO الصومال">Somalia</option>
+      <option value="South Africa" data-alternative-spellings="ZA RSA Suid-Afrika">South Africa</option>
+      <option value="South Georgia and the South Sandwich Islands" data-alternative-spellings="GS">South Georgia and the South Sandwich Islands</option>
+      <option value="South Sudan" data-alternative-spellings="SS">South Sudan</option>
+      <option value="Spain" data-alternative-spellings="ES España" data-relevancy-booster="2">Spain</option>
+      <option value="Sri Lanka" data-alternative-spellings="LK ශ්‍රී ලංකා இலங்கை Ceylon">Sri Lanka</option>
+      <option value="Sudan" data-alternative-spellings="SD السودان">Sudan</option>
+      <option value="Suriname" data-alternative-spellings="SR शर्नम् Sarnam Sranangron">Suriname</option>
+      <option value="Svalbard and Jan Mayen" data-alternative-spellings="SJ" data-relevancy-booster="0.5">Svalbard and Jan Mayen</option>
+      <option value="Swaziland" data-alternative-spellings="SZ weSwatini Swatini Ngwane">Swaziland</option>
+      <option value="Sweden" data-alternative-spellings="SE Sverige" data-relevancy-booster="1.5">Sweden</option>
+      <option value="Switzerland" data-alternative-spellings="CH Swiss Confederation Schweiz Suisse Svizzera Svizra" data-relevancy-booster="1.5">Switzerland</option>
+      <option value="Syrian Arab Republic" data-alternative-spellings="SY Syria سورية">Syrian Arab Republic</option>
+      <option value="Taiwan, Province of China" data-alternative-spellings="TW 台灣 臺灣">Taiwan, Province of China</option>
+      <option value="Tajikistan" data-alternative-spellings="TJ Тоҷикистон Toçikiston">Tajikistan</option>
+      <option value="Tanzania, United Republic of" data-alternative-spellings="TZ">Tanzania, United Republic of</option>
+      <option value="Thailand" data-alternative-spellings="TH ประเทศไทย Prathet Thai">Thailand</option>
+      <option value="Timor-Leste" data-alternative-spellings="TL">Timor-Leste</option>
+      <option value="Togo" data-alternative-spellings="TG Togolese">Togo</option>
+      <option value="Tokelau" data-alternative-spellings="TK" data-relevancy-booster="0.5">Tokelau</option>
+      <option value="Tonga" data-alternative-spellings="TO">Tonga</option>
+      <option value="Trinidad and Tobago" data-alternative-spellings="TT">Trinidad and Tobago</option>
+      <option value="Tunisia" data-alternative-spellings="TN تونس">Tunisia</option>
+      <option value="Turkey" data-alternative-spellings="TR Türkiye Turkiye">Turkey</option>
+      <option value="Turkmenistan" data-alternative-spellings="TM Türkmenistan">Turkmenistan</option>
+      <option value="Turks and Caicos Islands" data-alternative-spellings="TC" data-relevancy-booster="0.5">Turks and Caicos Islands</option>
+      <option value="Tuvalu" data-alternative-spellings="TV" data-relevancy-booster="0.5">Tuvalu</option>
+      <option value="Uganda" data-alternative-spellings="UG">Uganda</option>
+      <option value="Ukraine" data-alternative-spellings="UA Ukrayina Україна">Ukraine</option>
+      <option value="United Arab Emirates" data-alternative-spellings="AE UAE الإمارات">United Arab Emirates</option>
+      <option value="United Kingdom" data-alternative-spellings="GB Great Britain England UK Wales Scotland Northern Ireland" data-relevancy-booster="2.5">United Kingdom</option>
+      <option value="United States" data-relevancy-booster="3.5" data-alternative-spellings="US USA United States of America">United States</option>
+      <option value="United States Minor Outlying Islands" data-alternative-spellings="UM">United States Minor Outlying Islands</option>
+      <option value="Uruguay" data-alternative-spellings="UY">Uruguay</option>
+      <option value="Uzbekistan" data-alternative-spellings="UZ Ўзбекистон O'zbekstan O‘zbekiston">Uzbekistan</option>
+      <option value="Vanuatu" data-alternative-spellings="VU">Vanuatu</option>
+      <option value="Venezuela" data-alternative-spellings="VE">Venezuela</option>
+      <option value="Vietnam" data-alternative-spellings="VN Việt Nam" data-relevancy-booster="1.5">Vietnam</option>
+      <option value="Virgin Islands, British" data-alternative-spellings="VG" data-relevancy-booster="0.5">Virgin Islands, British</option>
+      <option value="Virgin Islands, U.S." data-alternative-spellings="VI" data-relevancy-booster="0.5">Virgin Islands, U.S.</option>
+      <option value="Wallis and Futuna" data-alternative-spellings="WF" data-relevancy-booster="0.5">Wallis and Futuna</option>
+      <option value="Western Sahara" data-alternative-spellings="EH لصحراء الغربية">Western Sahara</option>
+      <option value="Yemen" data-alternative-spellings="YE اليمن">Yemen</option>
+      <option value="Zambia" data-alternative-spellings="ZM">Zambia</option>
+      <option value="Zimbabwe" data-alternative-spellings="ZW">Zimbabwe</option>
+          </select>
+          <div class="hint">Try a country code, a native name or a nickname, not only the English name.</div>
+          <div class="actions">
+            <button type="submit" class="primary">Submit form</button>
+            <button type="button" id="country-reset">Reset</button>
+          </div>
+          <div class="submitted" id="country-submitted"></div>
+        </form>
+
+        <h3 style="margin-top:22px">Try these</h3>
+        <p class="hint" style="margin:0 0 4px">Each chip types the query into the field and opens the suggestions.</p>
+        <div class="chips" data-target="#country-selector">
+          <button type="button" class="chip" data-q="uk" title="Synonym: 'UK' is an alternative spelling for United Kingdom">uk</button>
+          <button type="button" class="chip" data-q="usa" title="Synonym: 'USA' matches United States">usa</button>
+          <button type="button" class="chip" data-q="deutschland" title="Native name: Deutschland matches Germany">deutschland</button>
+          <button type="button" class="chip" data-q="holland" title="Nickname: Holland matches Netherlands">holland</button>
+          <button type="button" class="chip" data-q="south korea" title="Multiple words: both 'south' and 'korea' must match">south korea</button>
+          <button type="button" class="chip" data-q="swiss" title="Partial match on 'Swiss Confederation'">swiss</button>
+          <button type="button" class="chip" data-q="cote divoire" title="Accent-free spelling: matches the alternative spelling 'Cote dIvoire'">cote divoire</button>
+          <button type="button" class="chip" data-q="in" title="Prioritisation: India (boosted) sorts ahead of other 'in' matches">in</button>
+          <button type="button" class="chip" data-q="Việt" title="Non-Latin and accented input works too">Việt</button>
+          <button type="button" class="chip" data-q="" title="Empty query shows the full list">(empty)</button>
+        </div>
+      </div>
+
+      <div>
+        <h3>What the form sees</h3>
+        <div class="state" id="country-state">
+          <dl>
+            <dt>Text field</dt><dd data-key="text"></dd>
+            <dt>Hidden select value</dt><dd data-key="value"></dd>
+            <dt>Top suggestion</dt><dd data-key="top"></dd>
+            <dt>Suggestions shown</dt><dd data-key="count"></dd>
+          </dl>
+          <ul class="log" id="country-log"></ul>
+        </div>
+        <p class="hint">The select's <code>change</code> event fires whenever the plugin syncs a new value into it, so existing form code keeps working unchanged.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="how-it-works">
+    <h2>2. How it works</h2>
+    <ol class="steps">
+      <li><strong>Start from a normal <code>&lt;select&gt;</code>.</strong> Each <code>&lt;option&gt;</code> can carry two extra attributes: <code>data-alternative-spellings</code> (a space-separated list of synonyms, codes, native names and common misspellings) and <code>data-relevancy-booster</code> (a multiplier that pushes popular entries up the list).</li>
+      <li><strong>The plugin hides the select and inserts a text field</strong> right after it. Attributes such as <code>class</code>, <code>placeholder</code> and <code>autocomplete</code> are copied across, so the text field styles like the rest of your form. Options with an empty <code>value</code> (the "Select Country" prompt) are dropped from the suggestions.</li>
+      <li><strong>Every option becomes a "matches" string</strong>: its label plus its alternative spellings. For Germany that is <code>Germany DE Bundesrepublik Deutschland</code>, which is why typing <em>deutschland</em> finds it.</li>
+      <li><strong>Loose matching.</strong> The query is split on spaces. An option is shown only when <em>every</em> query word appears somewhere in its matches string (case-insensitive, anywhere in a word). That is why <em>south korea</em> narrows to one result while <em>korea</em> shows both Koreas.</li>
+      <li><strong>Relevancy scoring.</strong> Each shown option gets a score, and the list is sorted by score, then alphabetically:</li>
+    </ol>
+    <p><span class="formula">score = (partial matches × 1 + (5 if a word starts with the query)) × booster</span></p>
+    <p>Typing <em>in</em> partially matches dozens of countries, but <em>India</em> starts with "in" and has a booster of 3, so it lands at the top. <em>Åland Islands</em>, boosted at 0.5, stays near the bottom even when it matches.</p>
+    <ol class="steps" start="6">
+      <li><strong>Selection is synced back.</strong> Picking a suggestion, tabbing away with a full match typed, or submitting the form writes the option's real <code>value</code> into the hidden select and fires its <code>change</code> event. Text that matches nothing resets the field to the last valid selection, so the form can never submit an invalid country.</li>
+    </ol>
+  </section>
+
+  <section class="card" id="any-list">
+    <h2>3. It works for any location list</h2>
+    <p>Nothing in the plugin is country-specific. Here the same call is applied to a list of cities, using alternative spellings for former names, local names and abbreviations.</p>
+    <div class="demo-grid">
+      <div>
+        <form id="city-form">
+          <label class="field" for="city-selector">Destination city</label>
+          <select name="City" id="city-selector" class="demo-input" placeholder="Start typing a city…" autocorrect="off" autocomplete="off">
+            <option value="" selected="selected">Select City</option>
+            <option value="BKK" data-alternative-spellings="Krung Thep กรุงเทพ" data-relevancy-booster="1.5">Bangkok</option>
+            <option value="PEK" data-alternative-spellings="Peking 北京" data-relevancy-booster="1.5">Beijing</option>
+            <option value="MAA" data-alternative-spellings="Madras">Chennai</option>
+            <option value="CGN" data-alternative-spellings="Köln Koeln Koln">Cologne</option>
+            <option value="CPH" data-alternative-spellings="København Kobenhavn">Copenhagen</option>
+            <option value="FLR" data-alternative-spellings="Firenze">Florence</option>
+            <option value="SGN" data-alternative-spellings="Saigon HCMC Sài Gòn">Ho Chi Minh City</option>
+            <option value="IST" data-alternative-spellings="Constantinople İstanbul" data-relevancy-booster="1.5">Istanbul</option>
+            <option value="CCU" data-alternative-spellings="Calcutta">Kolkata</option>
+            <option value="LIS" data-alternative-spellings="Lisboa">Lisbon</option>
+            <option value="LON" data-alternative-spellings="LHR LGW" data-relevancy-booster="2.5">London</option>
+            <option value="LAX" data-alternative-spellings="LA" data-relevancy-booster="2">Los Angeles</option>
+            <option value="BOM" data-alternative-spellings="Bombay" data-relevancy-booster="1.5">Mumbai</option>
+            <option value="MUC" data-alternative-spellings="München Muenchen Munchen">Munich</option>
+            <option value="NYC" data-alternative-spellings="New York City JFK Big Apple Manhattan" data-relevancy-booster="3">New York</option>
+            <option value="PRG" data-alternative-spellings="Praha">Prague</option>
+            <option value="LED" data-alternative-spellings="Leningrad Petrograd Санкт-Петербург">Saint Petersburg</option>
+            <option value="SFO" data-alternative-spellings="SF Frisco">San Francisco</option>
+            <option value="TYO" data-alternative-spellings="東京 HND NRT" data-relevancy-booster="2">Tokyo</option>
+            <option value="VCE" data-alternative-spellings="Venezia">Venice</option>
+            <option value="VIE" data-alternative-spellings="Wien">Vienna</option>
+          </select>
+          <div class="hint">Note the option values here are airport codes, so the form submits <code>City=NYC</code> while the user sees "New York".</div>
+          <div class="actions">
+            <button type="submit" class="primary">Submit form</button>
+            <button type="button" id="city-reset">Reset</button>
+          </div>
+          <div class="submitted" id="city-submitted"></div>
+        </form>
+        <h3 style="margin-top:22px">Try these</h3>
+        <div class="chips" data-target="#city-selector">
+          <button type="button" class="chip" data-q="bombay">bombay</button>
+          <button type="button" class="chip" data-q="saigon">saigon</button>
+          <button type="button" class="chip" data-q="big apple">big apple</button>
+          <button type="button" class="chip" data-q="koln">koln</button>
+          <button type="button" class="chip" data-q="peking">peking</button>
+          <button type="button" class="chip" data-q="sf">sf</button>
+        </div>
+      </div>
+      <div>
+        <h3>What the form sees</h3>
+        <div class="state" id="city-state">
+          <dl>
+            <dt>Text field</dt><dd data-key="text"></dd>
+            <dt>Hidden select value</dt><dd data-key="value"></dd>
+            <dt>Top suggestion</dt><dd data-key="top"></dd>
+            <dt>Suggestions shown</dt><dd data-key="count"></dd>
+          </dl>
+          <ul class="log" id="city-log"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="usage">
+    <h2>4. Usage</h2>
+    <p>Include jQuery, jQuery UI (autocomplete widget) and the plugin, mark up a select, and call <code>selectToAutocomplete()</code> on it.</p>
+<pre><code>&lt;script src="jquery-1.11.1.min.js"&gt;&lt;/script&gt;
+&lt;script src="jquery-ui.min.js"&gt;&lt;/script&gt;
+&lt;script src="jquery.select-to-autocomplete.js"&gt;&lt;/script&gt;
+&lt;link rel="stylesheet" href="jquery-ui.css"&gt;
+
+&lt;select name="Country" id="country-selector"&gt;
+  &lt;option value=""&gt;Select Country&lt;/option&gt;
+  &lt;option value="Germany"
+          data-alternative-spellings="DE Bundesrepublik Deutschland"
+          data-relevancy-booster="3"&gt;Germany&lt;/option&gt;
+  &lt;option value="Netherlands"
+          data-alternative-spellings="NL Holland Nederland"
+          data-relevancy-booster="1.5"&gt;Netherlands&lt;/option&gt;
+  ...
+&lt;/select&gt;
+
+&lt;script&gt;
+  $(function () {
+    $('#country-selector').selectToAutocomplete();
+  });
+&lt;/script&gt;</code></pre>
+    <p>Options are passed as an object: <code>$('select').selectToAutocomplete({ 'relevancy-sorting': false })</code>. Note that settings are shared by every selector initialised on the page, so pass the same options to each call.</p>
+
+    <h3 style="margin-top:20px">Options</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Option</th><th>Default</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>alternative-spellings</code></td><td><code>true</code></td><td>Read synonyms from each option's <code>data-alternative-spellings</code> attribute and include them in matching.</td></tr>
+        <tr><td><code>alternative-spellings-attr</code></td><td><code>'data-alternative-spellings'</code></td><td>Attribute name to read synonyms from.</td></tr>
+        <tr><td><code>relevancy-sorting</code></td><td><code>true</code></td><td>Score and sort suggestions instead of showing them in source order.</td></tr>
+        <tr><td><code>relevancy-sorting-partial-match-value</code></td><td><code>1</code></td><td>Points per query word found anywhere in the option.</td></tr>
+        <tr><td><code>relevancy-sorting-strict-match-value</code></td><td><code>5</code></td><td>Points when a word in the option starts with the query word.</td></tr>
+        <tr><td><code>relevancy-sorting-booster-attr</code></td><td><code>'data-relevancy-booster'</code></td><td>Attribute holding the per-option score multiplier.</td></tr>
+        <tr><td><code>sort</code></td><td><code>false</code></td><td>Pre-sort options by a numeric attribute before matching.</td></tr>
+        <tr><td><code>sort-attr</code></td><td><code>'data-priority'</code></td><td>Attribute used by <code>sort</code>.</td></tr>
+        <tr><td><code>sort-desc</code></td><td><code>false</code></td><td>Sort descending instead of ascending.</td></tr>
+        <tr><td><code>remove-valueless-options</code></td><td><code>true</code></td><td>Leave options with an empty <code>value</code> (placeholders) out of the suggestions.</td></tr>
+        <tr><td><code>copy-attributes-to-text-field</code></td><td><code>true</code></td><td>Copy the select's attributes (except <code>name</code> and <code>id</code>) onto the inserted text field.</td></tr>
+        <tr><td><code>autoselect</code></td><td><code>true</code></td><td>Select all text in the field on click, so a new search replaces the old value.</td></tr>
+        <tr><td><code>autoFocus</code></td><td><code>true</code></td><td>Highlight the first suggestion automatically (jQuery UI option).</td></tr>
+        <tr><td><code>minLength</code></td><td><code>0</code></td><td>Characters required before suggestions appear (jQuery UI option).</td></tr>
+        <tr><td><code>delay</code></td><td><code>0</code></td><td>Milliseconds to wait after a keystroke before searching (jQuery UI option).</td></tr>
+        <tr><td><code>autocomplete-plugin</code></td><td><code>'jquery_ui'</code></td><td>Adapter name, or a function receiving the context to wire up a different autocomplete library.</td></tr>
+        <tr><td><code>handle_invalid_input</code></td><td>function</td><td>Called when the text field loses focus with text that matches no option. Default restores the last valid selection.</td></tr>
+        <tr><td><code>handle_select_field</code></td><td>function</td><td>Called with the original select. Default hides it.</td></tr>
+        <tr><td><code>insert_text_field</code></td><td>function</td><td>Creates and inserts the text field. Override to change markup or placement.</td></tr>
+        <tr><td><code>extract_options</code></td><td>function</td><td>Builds the option list from the select. Override to load options from elsewhere.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <footer>
+    Plugin version 1.0.9 · MIT licensed · Copyright Jamie Appleseed, Baymard Institute. This page uses only the files in this repository and runs from a local file or any static host.
+  </footer>
+</main>
+
+<script>
+(function ($) {
+  $(function () {
+    // Wire up a panel that mirrors what the plugin does to the hidden select.
+    function bindPanel(selectId, stateId, logId, submittedId, resetId) {
+      var $select = $(selectId);
+      var $state = $(stateId);
+      var $log = $(logId);
+      var $text = $select.next('input[type=text]');
+
+      function set(key, value) {
+        $state.find('[data-key="' + key + '"]').text(value == null ? '' : String(value));
+      }
+      function log(message) {
+        var time = new Date().toTimeString().slice(0, 8);
+        $log.prepend($('<li>').text(time + '  ' + message));
+        $log.children().slice(12).remove();
+      }
+
+      $select.on('change', function () {
+        var value = $select.val() || '';
+        set('value', value);
+        log('select change → value = ' + JSON.stringify(value));
+      });
+      $text.on('input keyup', function () { set('text', $text.val()); });
+      $text.on('blur', function () { set('text', $text.val()); });
+      $text.on('autocompleteresponse', function (event, ui) {
+        set('text', $text.val());
+        set('count', ui.content.length);
+        set('top', ui.content.length ? ui.content[0].label : '');
+      });
+      $text.on('autocompleteclose', function () {
+        set('text', $text.val());
+      });
+
+      $select.closest('form').on('submit', function (event) {
+        event.preventDefault();
+        var serialized = $(this).serialize();
+        $(submittedId).text('Submitted: ' + serialized).show();
+        log('form submit → ' + serialized);
+      });
+
+      $(resetId).on('click', function () {
+        $select.val('');
+        $text.val('');
+        $(submittedId).hide();
+        set('text', '');
+        set('value', '');
+        set('top', '');
+        set('count', '');
+        log('reset');
+      });
+
+      set('value', $select.val() || '');
+      set('text', $text.val());
+    }
+
+    // Initialise the plugin on both selects.
+    $('#country-selector, #city-selector').selectToAutocomplete();
+
+    bindPanel('#country-selector', '#country-state', '#country-log', '#country-submitted', '#country-reset');
+    bindPanel('#city-selector', '#city-state', '#city-log', '#city-submitted', '#city-reset');
+
+    // Sample-query chips: type the query into the field and open the suggestions.
+    $('.chips').on('click', '.chip', function () {
+      var query = $(this).data('q');
+      var $text = $($(this).closest('.chips').data('target')).next('input[type=text]');
+      $text.val(query).focus();
+      $text.autocomplete('search', query);
+    });
+  });
+})(jQuery);
+</script>
+</body>
+</html>

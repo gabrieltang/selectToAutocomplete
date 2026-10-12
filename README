@@ -16,3 +16,9 @@ http://uxdesign.smashingmagazine.com/2011/11/10/redesigning-the-country-selector
 
 - Try the demo
 http://baymard.com/labs/country-selector
+
+- Local demo page
+Open demo.html in a browser (no build step or server needed). It shows the
+country selector live, explains the matching and relevancy scoring, applies the
+plugin to a second list of cities, and documents the available options.
+index.html is the minimal example from the original project.
