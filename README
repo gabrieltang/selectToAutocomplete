@@ -22,3 +22,11 @@ Open demo.html in a browser (no build step or server needed). It shows the
 country selector live, explains the matching and relevancy scoring, applies the
 plugin to a second list of cities, and documents the available options.
 index.html is the minimal example from the original project.
+
+- Ship-to country redirect demo
+Open demo-redirect.html to see the selector used as a "where should we ship
+to?" prompt that resolves the chosen country to a webstore and redirects
+there (simulated, with a store map you can edit at the top of the script).
+
+- Shopify
+See shopify/README.md for a ready-to-paste theme section and install steps.
